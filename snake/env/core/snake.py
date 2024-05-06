@@ -30,9 +30,11 @@ class Snake:
         """
         # Check if action can be performed (do nothing if in the same direction or opposite)
         # Example: if snake looks left, pressing "left" or "right" buttons should change nothing
-        new_direction_index = (self.current_direction_index + action) % 4
-        if new_direction_index % 2 != self.current_direction_index % 2:
-            self.current_direction_index = new_direction_index 
+        if (action == 0 and self.current_direction_index != 2) or \
+            (action == 1 and self.current_direction_index != 3) or \
+            (action == 2 and self.current_direction_index != 0) or \
+            (action == 3 and self.current_direction_index != 1):
+            self.current_direction_index = action 
         # Remove tail (can be implemented in 1 line)
         tail = self.blocks.pop()
         # Create new head

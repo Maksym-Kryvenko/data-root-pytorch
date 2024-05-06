@@ -1,43 +1,54 @@
-import numpy as np
+import sys
+sys.path.append("/media/mak-kry/My Data/Learning_py/kaggle/data-root-pytorch/snake")
 
-from settings.constants import DIRECTIONS, SNAKE_BLOCK
+import random, time
+
+from pyglet.window.key import MOTION_UP, MOTION_DOWN, MOTION_LEFT, MOTION_RIGHT
+from env.snake_env import SnakeEnv
 
 
-class Snake:
-    def __init__(self, head_position, direction_index, length):
-        """
-        @param head_position: tuple
-        @param direction_index: int
-        @param length: int
-        """
-        # Information snake need to know to make the move
-        self.snake_block = SNAKE_BLOCK
-        self.current_direction_index = direction_index
-        # Alive identifier
-        self.alive = True
-        # Place the snake
-        self.blocks = [head_position]
-        current_position = np.array(head_position)
-        for i in range(1, length):
-            # Direction inverse of moving
-            current_position = current_position - DIRECTIONS[self.current_direction_index]
-            self.blocks.append(tuple(current_position))
+def interact():
+    """
+    Human interaction with the environment
+    """
+    env = SnakeEnv()
+    done = False
+    r = 0
+    action = random.randrange(4)
+    delay_time = 0.2
 
-    def step(self, action):
+    # After the first run of the method env.render()
+    # env.renderer.viewer obtains an attribute 'window'
+    # which is a pyglet.window.Window object
+    env.render(mode='human')
+
+    # Use the arrows to control the snake's movement direction
+    @env.renderer.viewer.window.event
+    def on_text_motion(motion):
         """
-        @param action: int 
-        @param return: tuple, tuple
+        Events to actions mapping
         """
-        # Check if action can be performed (do nothing if in the same direction or opposite)
-        # Example: if snake looks left, pressing "left" or "right" buttons should change nothing
-        if not ((self.current_direction_index in [0,2]) and (action in [0,2])) or ((self.current_direction_index in [1,3]) and (action in [1,3])):
-            self.current_direction_index = action
-        # Remove tail (can be implemented in 1 line)
-        tail = self.blocks.pop()
-        self.blocks.append(tuple(np.array(self.blocks[0]) - DIRECTIONS[self.current_direction_index]))
-        # Create new head
-        new_head = self.blocks[0] + tuple(DIRECTIONS[self.current_direction_index])
-        # Add new head
-        # Note: all Snake's coordinates should be tuples (X, Y)
-        self.blocks = [new_head] + self.blocks
-        return new_head, tail
+        nonlocal action
+        if motion == MOTION_UP:
+            action = 0
+        elif motion == MOTION_DOWN:
+            action = 2
+        elif motion == MOTION_LEFT:
+            action = 3
+        elif motion == MOTION_RIGHT:
+            action = 1
+
+    while not done:
+        time.sleep(delay_time)
+        obs, reward, done, info = env.step(action)
+        env.render(mode='human')
+        if reward:
+            r += reward
+            # Speeding up snake after eating food
+            delay_time -= 1/6 * delay_time
+
+    return r
+
+
+if __name__ == '__main__':
+    interact()

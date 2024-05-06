@@ -52,7 +52,8 @@ class World(object):
         	# Choose a random position for spawn the Snake
         	# Tail should not spawn outside of the box or in the wall   
 			# Remember, coordinates is a tuple(X, Y)
-            start_position = tuple([random.randint(0+SNAKE_SIZE, self.size[0]-SNAKE_SIZE), random.randint(0+SNAKE_SIZE, self.size[0]-SNAKE_SIZE)])
+            start_position = tuple([random.randint(0+SNAKE_SIZE, self.size[0]-SNAKE_SIZE), 
+                                    random.randint(0+SNAKE_SIZE, self.size[0]-SNAKE_SIZE)])
             # Choose a random direction index
             start_direction_index = random.randint(0, 3)
             new_snake = Snake(start_position, start_direction_index, SNAKE_SIZE)
@@ -100,6 +101,7 @@ class World(object):
                 obs[block[0], block[1]] = snake.snake_block
                         # snakes head
             obs[snake.blocks[0][0], snake.blocks[0][1]] = snake.snake_block + 1
+        
         return obs
     
     def move_snake(self, action):
@@ -115,21 +117,22 @@ class World(object):
             # perform a step (from Snake class)
             new_snake_head, old_snake_tail = self.snake.step(action)
             # Check if snake is outside bounds
-            if new_snake_head[0] < 0 or new_snake_head[0] >= self.world.shape[0] or \
-                new_snake_head[1] < 0 or new_snake_head[1] >= self.world.shape[1]:
+            if new_snake_head[0] <= 0 or new_snake_head[0] >= self.world.shape[0] or \
+                new_snake_head[1] <= 0 or new_snake_head[1] >= self.world.shape[1]:
                 self.snake.alive = False
             # Check if snake eats itself
-            elif new_snake_head in self.snake.blocks:
+            elif new_snake_head in self.snake.blocks[1:]:
                 self.snake.alive = False
             #  Check if snake eats the food
             if new_snake_head == self.food_position:
                 # Remove old food
-                self.food_position = 0
+                self.current_available_food_positions.add(self.food_position)
+                self.world[self.food_position] = 0
                 # Add tail again
                 # Note: all Snake coordinates should be tuples(X, Y)
                 self.snake.blocks.append(old_snake_tail)
                 # Request to place new food
-                new_food_needed = self.init_food()
+                new_food_needed = True
                 reward = reward + self.EAT_REWARD
             elif self.snake.alive:
                 # Didn't eat anything, move reward
@@ -140,4 +143,5 @@ class World(object):
         # Adding new food
         if new_food_needed:
             self.init_food()
+
         return reward, done, self.snake.blocks

@@ -21,7 +21,7 @@ def main():
             actions = [3, 3, 3, 2]
             for action in actions:
                 reward, done, snake_blocks = test_world.move_snake(action)
-
+                
             print(f'\nAfter 3 moves LEFT Snake ate the food and moves 1 DOWN'
                   f'\nNow your World with Snake looks like: \n{test_world.get_observation()}')
             print('\nAs you can see, Snake grew up for a 1 block')
